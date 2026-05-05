@@ -3,27 +3,28 @@ import 'package:http/http.dart' as http;
 import '../ai_model/message.dart';
 
 class OpenAIService {
-  static const String _endpoint =
-      'https://openrouter.ai/api/v1/chat/completions';
-
-  static const String _apiKey = String.fromEnvironment('OPENROUTER_API_KEY');
+  static const String _backendBaseUrl = String.fromEnvironment(
+    'OPENROUTER_BACKEND_URL',
+    defaultValue:
+        'https://us-central1-finance-app-9e679.cloudfunctions.net/api',
+  );
 
   static const String _model = "nvidia/nemotron-3-nano-30b-a3b:free";
   static const String _imageModel = "blackforestlabs/flux-1.0-schnell:free";
 
+  Uri _buildUri(String path) {
+    final base = _backendBaseUrl.endsWith('/')
+        ? _backendBaseUrl.substring(0, _backendBaseUrl.length - 1)
+        : _backendBaseUrl;
+    return Uri.parse('$base$path');
+  }
+
   Future<String> sendMessage(List<Message> messages) async {
     try {
-      if (_apiKey.isEmpty) {
-        throw Exception('Missing OpenRouter API key. Pass it with --dart-define=OPENROUTER_API_KEY=...');
-      }
-
       final response = await http.post(
-        Uri.parse(_endpoint),
+        _buildUri('/chat'),
         headers: {
-          'Authorization': 'Bearer $_apiKey',
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://localhost',
-          'X-Title': 'Choi AI App',
         },
         body: jsonEncode({
           'model': _model,
@@ -39,15 +40,13 @@ class OpenAIService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data['choices'][0]['message']['content'].trim();
-      } else if (response.statusCode == 401) {
-        throw Exception('Invalid API key. Please check your OpenRouter API key.');
-      } else if (response.statusCode == 429) {
-        throw Exception('Rate limit exceeded. Please wait a moment and try again.');
-      } else if (response.statusCode == 500) {
-        throw Exception('Server error. Please try again later.');
+        final content = data['content'] ?? data['choices']?[0]?['message']?['content'];
+        if (content is String && content.trim().isNotEmpty) {
+          return content.trim();
+        }
+        throw Exception('Invalid response format from chat backend');
       } else {
-        throw Exception('OpenRouter Error ${response.statusCode}: ${response.body}');
+        throw Exception('Chat backend error ${response.statusCode}: ${response.body}');
       }
     } on http.ClientException catch (e) {
       throw Exception('Network error: ${e.message}. Please check your internet connection.');
@@ -62,19 +61,10 @@ class OpenAIService {
 
   Future<String> generateImage(String prompt) async {
     try {
-      if (_apiKey.isEmpty) {
-        throw Exception('Missing OpenRouter API key. Pass it with --dart-define=OPENROUTER_API_KEY=...');
-      }
-
-      final imageEndpoint = 'https://openrouter.ai/api/v1/images/generations';
-      
       final response = await http.post(
-        Uri.parse(imageEndpoint),
+        _buildUri('/image'),
         headers: {
-          'Authorization': 'Bearer $_apiKey',
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://localhost',
-          'X-Title': 'Choi AI App',
         },
         body: jsonEncode({
           'model': _imageModel,
@@ -85,19 +75,13 @@ class OpenAIService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        // Handle different response formats
-        if (data['data'] != null && data['data'].isNotEmpty) {
-          return data['data'][0]['url'];
+        final url = data['url'] ?? data['data']?[0]?['url'];
+        if (url is String && url.isNotEmpty) {
+          return url;
         }
-        throw Exception('Invalid response format from image generation API');
-      } else if (response.statusCode == 401) {
-        throw Exception('Invalid API key. Please check your OpenRouter API key.');
-      } else if (response.statusCode == 429) {
-        throw Exception('Rate limit exceeded. Please wait a moment and try again.');
-      } else if (response.statusCode == 404) {
-        throw Exception('Image generation endpoint not found. Please check API configuration.');
+        throw Exception('Invalid response format from image backend');
       } else {
-        throw Exception('Image generation failed: ${response.statusCode} - ${response.body}');
+        throw Exception('Image backend error ${response.statusCode}: ${response.body}');
       }
     } catch (e) {
       throw Exception('Failed to generate image: $e');

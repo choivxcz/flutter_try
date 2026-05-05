@@ -1,0 +1,20 @@
+{
+  "name": "flutter_try_functions",
+  "description": "Firebase Functions proxy for the Flutter final project AI features.",
+  "main": "index.js",
+  "engines": {
+    "node": "18"
+  },
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "firebase-functions": "^4.9.0"
+  },
+  "private": true
+}

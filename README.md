@@ -1,16 +1,25 @@
-# flutter_try
+# Barangay-Disaster-Aid-Allocator-Full-System-
+This repository helps people who are in need when in times of Disasters. It shows who will be prioritized in rescues based on their information.
+Hi
 
-A new Flutter project.
+## AI Backend Setup
 
-## Getting Started
+The final project chat/image features now go through Firebase Functions instead of calling OpenRouter directly from the app.
 
-This project is a starting point for a Flutter application.
+Set the OpenRouter key on the backend before deploying:
 
-A few resources to get you started if this is your first Flutter project:
+```powershell
+firebase functions:config:set openrouter.key="YOUR_OPENROUTER_KEY"
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Deploy the function after that:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```powershell
+firebase deploy --only functions
+```
+
+If you want to point the app at a different backend URL, pass it at build time:
+
+```powershell
+flutter run --dart-define=OPENROUTER_BACKEND_URL=https://us-central1-finance-app-9e679.cloudfunctions.net/api
+```
