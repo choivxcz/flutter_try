@@ -3,13 +3,20 @@ const DEFAULT_CHAT_MODEL = 'nvidia/nemotron-3-nano-30b-a3b:free';
 const DEFAULT_IMAGE_MODEL = 'blackforestlabs/flux-1.0-schnell:free';
 
 function getApiKey() {
-  return process.env.OPENROUTER_API_KEY || '';
+  return (
+    process.env.OPENROUTER_API_KEY ||
+    process.env.OPENROUTERAPIKEY ||
+    process.env.OPENROUTER_KEY ||
+    ''
+  );
 }
 
 function requireApiKey() {
   const apiKey = getApiKey();
   if (!apiKey) {
-    const error = new Error('Missing OPENROUTER_API_KEY. Set it in Vercel project environment variables.');
+    const error = new Error(
+      'Missing OPENROUTER_API_KEY. Set OPENROUTER_API_KEY in the Vercel project environment variables and redeploy.'
+    );
     error.statusCode = 500;
     throw error;
   }
