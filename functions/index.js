@@ -1,6 +1,7 @@
-const functions = require('firebase-functions');
 const express = require('express');
 const cors = require('cors');
+const { onRequest } = require('firebase-functions/v2/https');
+const { defineSecret } = require('firebase-functions/params');
 
 const app = express();
 
@@ -10,17 +11,17 @@ app.use(express.json({ limit: '1mb' }));
 const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1';
 const DEFAULT_CHAT_MODEL = 'nvidia/nemotron-3-nano-30b-a3b:free';
 const DEFAULT_IMAGE_MODEL = 'blackforestlabs/flux-1.0-schnell:free';
+const OPENROUTER_API_KEY = defineSecret('OPENROUTER_API_KEY');
 
 function getOpenRouterKey() {
-  const fromFunctionsConfig = functions.config()?.openrouter?.key;
-  return fromFunctionsConfig || process.env.OPENROUTER_API_KEY || '';
+  return OPENROUTER_API_KEY.value() || process.env.OPENROUTER_API_KEY || '';
 }
 
 function requireOpenRouterKey() {
   const apiKey = getOpenRouterKey();
   if (!apiKey) {
     const error = new Error(
-      'Missing OPENROUTER_API_KEY. Set it with firebase functions:config:set openrouter.key="..."'
+      'Missing OPENROUTER_API_KEY. Set it with firebase functions:secrets:set OPENROUTER_API_KEY'
     );
     error.statusCode = 500;
     throw error;
@@ -130,4 +131,4 @@ app.post('/image', async (request, response) => {
   }
 });
 
-exports.api = functions.https.onRequest(app);
+exports.api = onRequest({ secrets: [OPENROUTER_API_KEY] }, app);

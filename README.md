@@ -9,7 +9,7 @@ The final project chat/image features now go through Firebase Functions instead 
 Set the OpenRouter key on the backend before deploying:
 
 ```powershell
-firebase functions:config:set openrouter.key="YOUR_OPENROUTER_KEY"
+firebase functions:secrets:set OPENROUTER_API_KEY
 ```
 
 Deploy the function after that:
@@ -17,6 +17,8 @@ Deploy the function after that:
 ```powershell
 firebase deploy --only functions
 ```
+
+Note: Firebase Functions deployment requires the Blaze plan, so you will need to upgrade the Firebase project before the deploy step will work.
 
 If you want to point the app at a different backend URL, pass it at build time:
 
