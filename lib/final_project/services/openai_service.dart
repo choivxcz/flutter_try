@@ -5,14 +5,17 @@ import '../ai_model/message.dart';
 class OpenAIService {
   static const String _backendBaseUrl = String.fromEnvironment(
     'OPENROUTER_BACKEND_URL',
-    defaultValue:
-        'https://us-central1-finance-app-9e679.cloudfunctions.net/api',
+    defaultValue: '',
   );
 
   static const String _model = "nvidia/nemotron-3-nano-30b-a3b:free";
   static const String _imageModel = "blackforestlabs/flux-1.0-schnell:free";
 
   Uri _buildUri(String path) {
+    if (_backendBaseUrl.isEmpty) {
+      throw Exception('Missing backend URL. Set OPENROUTER_BACKEND_URL to your deployed API base URL.');
+    }
+
     final base = _backendBaseUrl.endsWith('/')
         ? _backendBaseUrl.substring(0, _backendBaseUrl.length - 1)
         : _backendBaseUrl;

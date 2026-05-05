@@ -4,24 +4,18 @@ Hi
 
 ## AI Backend Setup
 
-The final project chat/image features now go through Firebase Functions instead of calling OpenRouter directly from the app.
+The final project chat/image features now go through a small Vercel serverless backend instead of calling OpenRouter directly from the app.
 
-Set the OpenRouter key on the backend before deploying:
-
-```powershell
-firebase functions:secrets:set OPENROUTER_API_KEY
-```
-
-Deploy the function after that:
+Set the OpenRouter key in your Vercel project environment variables:
 
 ```powershell
-firebase deploy --only functions
+OPENROUTER_API_KEY=your_openrouter_key
 ```
 
-Note: Firebase Functions deployment requires the Blaze plan, so you will need to upgrade the Firebase project before the deploy step will work.
-
-If you want to point the app at a different backend URL, pass it at build time:
+Deploy the `api/` folder to Vercel, then point the Flutter app at the deployed API base URL:
 
 ```powershell
-flutter run --dart-define=OPENROUTER_BACKEND_URL=https://us-central1-finance-app-9e679.cloudfunctions.net/api
+flutter run --dart-define=OPENROUTER_BACKEND_URL=https://your-project.vercel.app/api
 ```
+
+The app will fail fast if `OPENROUTER_BACKEND_URL` is missing.
